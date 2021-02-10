@@ -3,6 +3,8 @@ package com.qbo.appcamarastorage
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
+import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +21,7 @@ import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.min
 
 class MainActivity : AppCompatActivity() {
 
@@ -56,6 +59,28 @@ class MainActivity : AppCompatActivity() {
         this?.sendBroadcast(imagenintent)
     }
     private fun mostrarFoto(){
+        val einterface = ExifInterface(rutalActual)
+        val oritacion : Int = einterface.getAttributeInt(
+            ExifInterface.TAG_ORIENTATION,
+            ExifInterface.ORIENTATION_UNDEFINED
+        )
+        if(oritacion == ExifInterface.ORIENTATION_ROTATE_90){
+            ivfoto.rotation = 90.0F
+        }else{
+            ivfoto.rotation = 0.0F
+        }
+        val ancho: Int = ivfoto.width
+        val alto: Int = ivfoto.height
+        val opcionesimagen = BitmapFactory.Options()
+        opcionesimagen.inJustDecodeBounds = true
+        BitmapFactory.decodeFile(rutalActual, opcionesimagen)
+        val anchofoto = opcionesimagen.outWidth
+        val altofoto = opcionesimagen.outHeight
+        val scala = min(anchofoto / ancho, altofoto / alto)
+        opcionesimagen.inSampleSize = scala
+        opcionesimagen.inJustDecodeBounds = false
+        val imagenbitmap = BitmapFactory.decodeFile(rutalActual, opcionesimagen)
+        ivfoto.setImageBitmap(imagenbitmap)
 
     }
 
