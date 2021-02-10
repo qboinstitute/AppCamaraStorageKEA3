@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AppCamaraStorage</string>
+    <string name="valtitulo">PERMISOS EN TIEMPO DE EJECUCIÓN</string>
+    <string name="valbtncamara">TOMAR FOTO</string>
+</resources>
