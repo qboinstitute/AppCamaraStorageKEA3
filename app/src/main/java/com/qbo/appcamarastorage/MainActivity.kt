@@ -1,8 +1,10 @@
 package com.qbo.appcamarastorage
 
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Environment
@@ -37,6 +39,36 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun grabarFoto(){
+        val imagenintent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        val nuevoarchivo = File(rutalActual)
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+            val contenidouri = FileProvider.getUriForFile(
+                applicationContext,
+                "com.qbo.appcamarastorage.provider",
+                nuevoarchivo
+            )
+            imagenintent.data = contenidouri
+        }else{
+            val contenidouri = Uri.fromFile(nuevoarchivo)
+            imagenintent.data = contenidouri
+        }
+        this?.sendBroadcast(imagenintent)
+    }
+    private fun mostrarFoto(){
+
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if(requestCode == CAMARA_REQUEST){
+            if(resultCode == Activity.RESULT_OK){
+                grabarFoto()
+                mostrarFoto()
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
     @Throws(IOException::class)
     private fun crearArchivoImagen(): File?{
         val fechahora = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
@@ -48,7 +80,6 @@ class MainActivity : AppCompatActivity() {
         rutalActual = imagen.absolutePath
         return imagen
     }
-
     @Throws(IOException::class)
     private fun intencionTomarFoto(){
         val tomarfotointent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -66,7 +97,6 @@ class MainActivity : AppCompatActivity() {
 
         }
     }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
