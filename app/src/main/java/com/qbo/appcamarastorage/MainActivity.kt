@@ -1,13 +1,22 @@
 package com.qbo.appcamarastorage
 
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.File
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,11 +28,42 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         btncamara.setOnClickListener {
             if(permisoEscrituraAlmacenamiento()){
-                Snackbar.make(it, "SI tiene permiso", Snackbar.LENGTH_LONG).show()
+                intencionTomarFoto()
+                //Snackbar.make(it, "SI tiene permiso", Snackbar.LENGTH_LONG).show()
             }else{
                 solicitarPermiso()
                 //Snackbar.make(it, "No tiene permiso", Snackbar.LENGTH_LONG).show()
             }
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun crearArchivoImagen(): File?{
+        val fechahora = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+        val nombrearchivo = "JPEG_${fechahora}_"
+        val direccionstorage : File =
+            this?.getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        val imagen: File = File.createTempFile(nombrearchivo,".jpg",
+            direccionstorage)
+        rutalActual = imagen.absolutePath
+        return imagen
+    }
+
+    @Throws(IOException::class)
+    private fun intencionTomarFoto(){
+        val tomarfotointent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        if(tomarfotointent.resolveActivity(this?.packageManager!!) != null){
+            val archivofoto = crearArchivoImagen()
+            if(archivofoto != null){
+                val urifoto : Uri = FileProvider.getUriForFile(
+                    applicationContext,
+                    "com.qbo.appcamarastorage.provider",
+                    archivofoto
+                )
+                tomarfotointent.putExtra(MediaStore.EXTRA_OUTPUT, urifoto)
+                startActivityForResult(tomarfotointent, CAMARA_REQUEST)
+            }
+
         }
     }
 
@@ -35,8 +75,8 @@ class MainActivity : AppCompatActivity() {
         if(requestCode == 0){
             if(grantResults.isNotEmpty() && grantResults[0] ==
                     PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(applicationContext, "Llamar a la cámara",
-                    Toast.LENGTH_LONG).show()
+                intencionTomarFoto()
+                //Toast.makeText(applicationContext, "Llamar a la cámara", Toast.LENGTH_LONG).show()
             }else{
                 Toast.makeText(applicationContext, "Permiso denegado",
                     Toast.LENGTH_LONG).show()
